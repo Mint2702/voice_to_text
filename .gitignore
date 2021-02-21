@@ -1,0 +1,7 @@
+/env
+.env
+*.wav
+*.m4a
+pycache
+.vscode/
+*.cpython*
