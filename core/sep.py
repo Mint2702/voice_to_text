@@ -4,22 +4,23 @@ import speech_recognition as speech_recog
 import subprocess
 import os
 from loguru import logger
+from collections import Counter
 
 from settings import settings
 
 
 class SoundToText:
     def __init__(self, name: str):
-        self.common_words = settings.common_words
+        self.common_words = settings.common_words.split("\n")
         self.text = ""
         self.file_name = "sound.wav"
         subprocess.call(f"ffmpeg -i {name}.mp4 -c:a copy -vn sound.aac", shell=True)
         subprocess.call(f"ffmpeg -i sound.aac {self.file_name}", shell=True)
         names_list = self.split()
         self.convert(names_list)
-        self.parce_text()
+        self.text = self.text.split(" ")
         self.clear_words()
-        print(self.text)
+        print(self.get_counter())
 
     def __del__(self):
         os.remove(self.file_name)
@@ -46,13 +47,13 @@ class SoundToText:
                 pass
             os.remove(name)
 
-    def parce_text(self):
-        self.text = self.text.split(" ")
-
     def clear_words(self):
         for word in self.text:
-            if len(word) < 4 or self.common_words.count(word) != 0:
+            if len(word) < 4 or self.common_words.count(word) != 0 or word == "":
                 self.text.remove(word)
+
+    def get_counter(self) -> Counter:
+        return Counter(self.text)
 
 
 class SplitAudio:
