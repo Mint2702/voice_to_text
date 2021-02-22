@@ -5,10 +5,12 @@ import subprocess
 import os
 from loguru import logger
 
+from settings import settings
+
 
 class SoundToText:
     def __init__(self, name: str):
-        self.common_words = ""
+        self.common_words = settings.common_words
         self.text = ""
         self.file_name = "sound.wav"
         subprocess.call(f"ffmpeg -i {name}.mp4 -c:a copy -vn sound.aac", shell=True)
@@ -49,7 +51,7 @@ class SoundToText:
 
     def clear_words(self):
         for word in self.text:
-            if len(word) < 3:
+            if len(word) < 4 or self.common_words.count(word) != 0:
                 self.text.remove(word)
 
 
