@@ -37,7 +37,6 @@ class SoundToText:
 
             r = speech_recog.Recognizer()
             with sample_audio as source:
-                # r.adjust_for_ambient_noise(source)  -  Noise clearence, sometimes decreases the accuracy of the convertion
                 audio_content = r.record(source)
 
             try:
@@ -49,7 +48,7 @@ class SoundToText:
 
     def clear_words(self):
         for word in self.text:
-            if len(word) < 4 or self.common_words.count(word) != 0 or word == "":
+            if self.common_words.count(word) != 0:
                 self.text.remove(word)
 
     def get_counter(self) -> Counter:

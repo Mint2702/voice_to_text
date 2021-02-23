@@ -2,6 +2,7 @@
 .env
 *.wav
 *.m4a
+*.mp4
 pycache
 .vscode/
 *.cpython*
