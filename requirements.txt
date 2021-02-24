@@ -1,0 +1,9 @@
+requests
+pydantic
+pydub
+speechrecognition
+loguru
+pydantic[dotenv]
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib

@@ -83,4 +83,4 @@ class SplitAudio:
         return names
 
 
-test = SoundToText("video")
+# test = SoundToText("video")

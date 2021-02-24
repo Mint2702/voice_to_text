@@ -3,6 +3,8 @@ from pydantic import BaseSettings, Field
 
 class Settings(BaseSettings):
     common_words: str = Field(..., env="COMMON")
+    creds_path: str = Field(..., env="CREDS_PATH")
+    token_path: str = Field(..., env="TOKEN_PATH")
 
     class Config:
         env_file = ".env"
