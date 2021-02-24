@@ -1,9 +1,12 @@
 import os
 import pickle
+from io import FileIO
+from loguru import logger
 
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseDownload
 
 from settings import settings
 
@@ -11,13 +14,13 @@ from settings import settings
 CREDS_PATH = settings.creds_path
 TOKEN_PATH = settings.token_path
 
-SCOPES = ["https://www.googleapis.com/auth/drive.metadata.readonly"]
+SCOPES = "https://www.googleapis.com/auth/drive"
 
 
 class Drive:
     def __init__(self):
         self.refresh_token()
-        self.drive_service = build("drive", "v3", credentials=creds)
+        self.service = build("drive", "v3", credentials=self.creds)
         self.dowload()
 
     def refresh_token(self):
@@ -35,19 +38,22 @@ class Drive:
                 pickle.dump(self.creds, token)
 
     def dowload(self):
+        file_id = "1ayGVdccCmS4BvQK5YL7l8mfd4PVrPEvd"
+        request = self.service.files().get_media(fileId=file_id)
+        fh = io.FileIO("video.mp4", "wb")
+        downloader = MediaIoBaseDownload(fh, request)
+        done = False
+        while done is False:
+            status, done = downloader.next_chunk()
+            logger.info("Download %d%%." % int(status.progress() * 100))
+
+    def list_files(self):
         results = (
-            service.files()
-            .list(pageSize=10, fields="nextPageToken, files(id, name)")
+            self.service.files()
+            .list(pageSize=10, fields="nextPageToken, files(id, name, mimeType)")
             .execute()
         )
-        items = results.get("files", [])
-
-        if not items:
-            print("No files found.")
-        else:
-            print("Files:")
-            for item in items:
-                print(u"{0} ({1})".format(item["name"], item["id"]))
+        logger.info(results)
 
 
 test = Drive()

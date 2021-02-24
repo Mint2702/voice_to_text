@@ -25,6 +25,7 @@ class EruditeRecords:
         for record in records:
             room_name = record["room_name"]
             if self.check_if_offline(room_name, record["type"]):
+                print(record)
                 continue
             self.offline_rooms.append(room_name)
 
