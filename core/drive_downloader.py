@@ -21,7 +21,6 @@ class Drive:
     def __init__(self):
         self.refresh_token()
         self.service = build("drive", "v3", credentials=self.creds)
-        self.dowload()
 
     def refresh_token(self):
         self.creds = None
@@ -36,24 +35,21 @@ class Drive:
                 self.creds = flow.run_local_server(port=0)
             with open(TOKEN_PATH, "wb") as token:
                 pickle.dump(self.creds, token)
+        if self.creds:
+            logger.info("Creds created sucssessfully")
 
-    def dowload(self):
-        file_id = "1ayGVdccCmS4BvQK5YL7l8mfd4PVrPEvd"
-        request = self.service.files().get_media(fileId=file_id)
-        fh = io.FileIO("video.mp4", "wb")
-        downloader = MediaIoBaseDownload(fh, request)
+    def dowload(self, video_id: str, name: str = "video.mp4"):
+        """ Downloads a video from Google Drive with given video_id to the name "video.mp4" if not specified """
+
+        self.file_name = name
+        request = self.service.files().get_media(fileId=video_id)
+        file_downloaded = FileIO(name, "wb")
+        downloader = MediaIoBaseDownload(file_downloaded, request)
         done = False
         while done is False:
             status, done = downloader.next_chunk()
-            logger.info("Download %d%%." % int(status.progress() * 100))
-
-    def list_files(self):
-        results = (
-            self.service.files()
-            .list(pageSize=10, fields="nextPageToken, files(id, name, mimeType)")
-            .execute()
-        )
-        logger.info(results)
+            logger.info(f"Download - {int(status.progress() * 100)}% done")
 
 
 test = Drive()
+test.dowload("1ayGVdccCmS4BvQK5YL7l8mfd4PVrPEvd")
