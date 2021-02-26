@@ -10,7 +10,6 @@ from settings import settings
 
 
 COMMON = settings.common_words.split("\n")
-print(COMMON)
 SOUND_WAV = "sound.wav"
 SOUND_AAC = "sound.aac"
 

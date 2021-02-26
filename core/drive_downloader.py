@@ -7,6 +7,7 @@ from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
+from googleapiclient.errors import HttpError
 
 from settings import settings
 
@@ -38,19 +39,22 @@ class Drive:
         if self.creds:
             logger.info("Creds created sucssessfully")
 
-    def dowload(self, video_id: str, name: str = "video.mp4") -> str:
+    def download(self, video_id: str, name: str = "video.mp4") -> str:
         """ Downloads a video from Google Drive with given video_id to the name "video.mp4" if not specified """
 
         self.file_name = name
-        request = self.service.files().get_media(fileId=video_id)
-        file_downloaded = FileIO(name, "wb")
-        downloader = MediaIoBaseDownload(file_downloaded, request)
-        done = False
-        while done is False:
-            status, done = downloader.next_chunk()
-            logger.info(f"Download - {int(status.progress() * 100)}% done")
+        try:
+            request = self.service.files().get_media(fileId=video_id)
+            file_downloaded = FileIO(name, "wb")
+            downloader = MediaIoBaseDownload(file_downloaded, request)
+            done = False
+            while done is False:
+                status, done = downloader.next_chunk()
+                logger.info(f"Download - {int(status.progress() * 100)}% done")
+        except HttpError:
+            logger.error(f"File with id - {video_id} not found")
         return name
 
 
-test = Drive()
-test.dowload("1ayGVdccCmS4BvQK5YL7l8mfd4PVrPEvd")
+# test = Drive()
+# test.download("1ayGVdccCmS4BvQK5YL7l8mfd4PVrPEvdS")
