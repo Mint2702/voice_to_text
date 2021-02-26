@@ -38,7 +38,7 @@ class Drive:
         if self.creds:
             logger.info("Creds created sucssessfully")
 
-    def dowload(self, video_id: str, name: str = "video.mp4"):
+    def dowload(self, video_id: str, name: str = "video.mp4") -> str:
         """ Downloads a video from Google Drive with given video_id to the name "video.mp4" if not specified """
 
         self.file_name = name
@@ -49,6 +49,7 @@ class Drive:
         while done is False:
             status, done = downloader.next_chunk()
             logger.info(f"Download - {int(status.progress() * 100)}% done")
+        return name
 
 
 test = Drive()
