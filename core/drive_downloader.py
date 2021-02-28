@@ -56,5 +56,5 @@ class Drive:
         return name
 
 
-# test = Drive()
-# test.download("1ayGVdccCmS4BvQK5YL7l8mfd4PVrPEvdS")
+test = Drive()
+test.download("1ayGVdccCmS4BvQK5YL7l8mfd4PVrPEvd")

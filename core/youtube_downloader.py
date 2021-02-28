@@ -11,6 +11,7 @@ class Youtube:
         """ Downloads video from youtube and reames it """
 
         name = self.check_repair_name(name)
+        self.file_name = name
         try:
             vid = YouTube(url).streams.first().download()
             rename(vid, name)
