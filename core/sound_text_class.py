@@ -25,8 +25,12 @@ class SoundToText:
         print(self.get_counter())
 
     def __del__(self):
-        os.remove(SOUND_WAV)
-        os.remove(SOUND_AAC)
+        # TODO: try/except on deletion
+        try:
+            os.remove(SOUND_WAV)
+            os.remove(SOUND_AAC)
+        except:
+            pass
 
     def split(self) -> list:
         """ Splits video by 1-minute length pieces """

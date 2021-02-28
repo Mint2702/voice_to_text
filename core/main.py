@@ -18,7 +18,7 @@ class EruditeRecords:
         self.convert_rooms(records)
 
     def set_dates(self) -> str:
-        today = datetime.today().date() - timedelta(days=1)
+        today = datetime.today().date() - timedelta(days=2)
         return today
 
     def get_all_records_per_day(self) -> list:
@@ -28,31 +28,37 @@ class EruditeRecords:
 
     def convert_rooms(self, records: list):
         for record in records:
-            if record["type"] == "Offline":
+            print(record)
+            if record["type"] == "Offline" or record["type"] == "Zoom":
                 room_name = record["room_name"]
                 start_time = record["start_time"]
-                start_time = start_time[:10]
-                if not self.check_if_offline(room_name, record["type"], start_time):
+                start_time = start_time[:5]
+                print(room_name, record["type"], start_time)
+                if not self.check_if_new(room_name, start_time):
                     continue
                 room_times = self.offline_rooms.get(room_name)
                 if room_times is None:
                     self.offline_rooms[room_name] = [start_time]
+                    room_times = self.offline_rooms.get(room_name)
                 room_times.append(start_time)
                 id = self.get_file_id(record["url"])
                 self.drive.download(id)
                 self.video = self.drive.file_name
+                self.video = self.video[:-4]
             else:
                 self.youtube.download(record["url"])
                 self.video = self.youtube.file_name
+                self.video = self.video[:-4]
             convertion = SoundToText(self.video)
             key_words = convertion.get_counter()
+            del convertion
             record.update({"keywords": key_words})
             self.delete()
 
     def check_if_new(self, name: str, start_time: str) -> bool:
         start_time = start_time[:10]
         room_times = self.offline_rooms.get(name)
-        if room_times is None or room_times.count(start_time) == 0:
+        if room_times is None or start_time in room_times:
             return True
         return False
 
@@ -62,7 +68,7 @@ class EruditeRecords:
         return id
 
     def delete(self):
-        os.remove(self.video)
+        os.remove(f"{self.video}.mp4")
 
 
 check = EruditeRecords()
