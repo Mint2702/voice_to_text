@@ -25,15 +25,15 @@ class SoundToText:
 
     def __del__(self) -> None:
         try:
-            os.remove(SOUND_WAV)
-            os.remove(SOUND_AAC)
+            os.remove(self.SOUND_WAV)
+            os.remove(self.SOUND_AAC)
         except:
             pass
 
     def split(self) -> list:
         """ Splits video by 1-minute length pieces """
 
-        split_wav = SplitAudio(SOUND_WAV)
+        split_wav = SplitAudio(self.SOUND_WAV)
         return split_wav.multiple_split()
 
     def convert(self, names: list, lang: str = "ru-RU") -> None:
@@ -66,9 +66,14 @@ class SoundToText:
     def get_counter(self) -> Counter:
         return Counter(self.text)
 
+    def get_list(self) -> list:
+        return self.text
+
     def video_to_sound(self, name: str) -> None:
-        subprocess.call(f"ffmpeg -i {name}.mp4 -c:a copy -vn {SOUND_AAC}", shell=True)
-        subprocess.call(f"ffmpeg -i {SOUND_AAC} {SOUND_WAV}", shell=True)
+        subprocess.call(
+            f"ffmpeg -i {name}.mp4 -c:a copy -vn {self.SOUND_AAC}", shell=True
+        )
+        subprocess.call(f"ffmpeg -i {self.SOUND_AAC} {self.SOUND_WAV}", shell=True)
 
 
 class SplitAudio:

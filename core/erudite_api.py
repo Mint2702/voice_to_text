@@ -39,10 +39,8 @@ class Erudite:
         )
         code = r.status_code
         if code == 200:
-            return r.json()
+            logger.info("Record updated successfully")
         elif code == 404:
             logger.warning(f"Record with id - {record_id} not found")
-            return []
         else:
             logger.error(f"Erudite returned - {code}")
-            return []

@@ -45,12 +45,14 @@ class EruditeRecords:
     def convert_offline_zoom(self, records: list) -> None:
         for record in records:
             self.download_offline_zoom(record)
-            self.convert()
+            key_words = self.convert()
+            self.erudite.patch_record(key_words, record["id"])
 
     def convert_jitsi(self, records: list) -> None:
         for record in records:
             self.download_jitsi(record)
-            self.convert()
+            key_words = self.convert()
+            self.erudite.patch_record(key_words, record["id"])
 
     def download_jitsi(self, record: dict) -> None:
         self.youtube.download(record["url"])
@@ -64,12 +66,12 @@ class EruditeRecords:
         self.video = self.drive.file_name
         self.video = self.video[:-4]
 
-    def convert(self) -> None:
+    def convert(self) -> list:
         convertion = SoundToText(self.video)
-        key_words = convertion.get_counter()
+        key_words = convertion.get_list()
         del convertion
-        # Обновление keywords в Эрудите
         self.delete()
+        return key_words
 
     def get_file_id(self, url: str) -> str:
         id = url[32:]

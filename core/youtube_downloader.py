@@ -15,7 +15,8 @@ class Youtube:
         try:
             self.vid = YouTube(url)
             self.vid.streams.first().download()
-            rename(self.vid, name)
+            downloaded_name = f"{self.vid.title}.mp4"
+            rename(downloaded_name, name)
         except exceptions.VideoUnavailable:
             logger.error("Video not found in YouTube")
 
