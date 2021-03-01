@@ -12,29 +12,29 @@ from googleapiclient.errors import HttpError
 from settings import settings
 
 
-CREDS_PATH = settings.creds_path
-TOKEN_PATH = settings.token_path
-
-SCOPES = "https://www.googleapis.com/auth/drive"
-
-
 class Drive:
-    def __init__(self):
+    CREDS_PATH = settings.creds_path
+    TOKEN_PATH = settings.token_path
+    SCOPES = "https://www.googleapis.com/auth/drive"
+
+    def __init__(self) -> None:
         self.refresh_token()
         self.service = build("drive", "v3", credentials=self.creds)
 
-    def refresh_token(self):
+    def refresh_token(self) -> None:
         self.creds = None
-        if os.path.exists(TOKEN_PATH):
-            with open(TOKEN_PATH, "rb") as token:
+        if os.path.exists(self.TOKEN_PATH):
+            with open(self.TOKEN_PATH, "rb") as token:
                 self.creds = pickle.load(token)
         if not self.creds or not self.creds.valid:
             if self.creds and self.creds.expired and self.creds.refresh_token:
                 self.creds.refresh(Request())
             else:
-                flow = InstalledAppFlow.from_client_secrets_file(CREDS_PATH, SCOPES)
+                flow = InstalledAppFlow.from_client_secrets_file(
+                    self.CREDS_PATH, self.SCOPES
+                )
                 self.creds = flow.run_local_server(port=0)
-            with open(TOKEN_PATH, "wb") as token:
+            with open(self.TOKEN_PATH, "wb") as token:
                 pickle.dump(self.creds, token)
         if self.creds:
             logger.info("Creds created sucssessfully")
@@ -56,5 +56,5 @@ class Drive:
         return name
 
 
-test = Drive()
-test.download("1ayGVdccCmS4BvQK5YL7l8mfd4PVrPEvd")
+# test = Drive()
+# test.download("1ayGVdccCmS4BvQK5YL7l8mfd4PVrPEvd")

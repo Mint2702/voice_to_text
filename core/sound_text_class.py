@@ -9,13 +9,12 @@ from collections import Counter
 from settings import settings
 
 
-COMMON = settings.common_words.split("\n")
-SOUND_WAV = "sound.wav"
-SOUND_AAC = "sound.aac"
-
-
 class SoundToText:
-    def __init__(self, name: str, lang: str = "ru-RU"):
+    COMMON = settings.common_words.split("\n")
+    SOUND_WAV = "sound.wav"
+    SOUND_AAC = "sound.aac"
+
+    def __init__(self, name: str, lang: str = "ru-RU") -> None:
         self.text = ""
         self.video_to_sound(name)
         names_list = self.split()
@@ -24,8 +23,7 @@ class SoundToText:
         self.clear_words()
         print(self.get_counter())
 
-    def __del__(self):
-        # TODO: try/except on deletion
+    def __del__(self) -> None:
         try:
             os.remove(SOUND_WAV)
             os.remove(SOUND_AAC)
@@ -38,7 +36,7 @@ class SoundToText:
         split_wav = SplitAudio(SOUND_WAV)
         return split_wav.multiple_split()
 
-    def convert(self, names: list, lang: str = "ru-RU"):
+    def convert(self, names: list, lang: str = "ru-RU") -> None:
         """ Converts sound from every file given into a list of words, deletes converted .wav file """
 
         for name in names:
@@ -56,9 +54,9 @@ class SoundToText:
                 pass
             os.remove(name)
 
-    def clear_words(self):
+    def clear_words(self) -> None:
         for word in self.text:
-            if COMMON.count(word) != 0:
+            if self.COMMON.count(word) != 0:
                 while True:
                     try:
                         self.text.remove(word)
@@ -68,20 +66,20 @@ class SoundToText:
     def get_counter(self) -> Counter:
         return Counter(self.text)
 
-    def video_to_sound(self, name: str):
+    def video_to_sound(self, name: str) -> None:
         subprocess.call(f"ffmpeg -i {name}.mp4 -c:a copy -vn {SOUND_AAC}", shell=True)
         subprocess.call(f"ffmpeg -i {SOUND_AAC} {SOUND_WAV}", shell=True)
 
 
 class SplitAudio:
-    def __init__(self, filename: str):
+    def __init__(self, filename: str) -> None:
         self.filename = filename
         self.audio = AudioSegment.from_wav(self.filename)
 
     def get_duration_minutes(self) -> int:
         return self.audio.duration_seconds / 60
 
-    def single_split(self, from_min: int, to_min: int, split_filename: str):
+    def single_split(self, from_min: int, to_min: int, split_filename: str) -> None:
         """ Cuts a piece from an audio by given minutes """
 
         t1 = from_min * 60 * 1000

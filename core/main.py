@@ -1,74 +1,93 @@
 import requests
-from datetime import datetime, timedelta
 import os
+from loguru import logger
 
 from sound_text_class import SoundToText
 from drive_downloader import Drive
 from youtube_downloader import Youtube
+from erudite_api import Erudite
 
 
 class EruditeRecords:
-    def __init__(self):
-        self.fromdate = f"{self.set_dates()} 9:00:00"
-        self.todate = f"{self.set_dates()} 21:00:00"
-        self.offline_rooms = {}
-        records = self.get_all_records_per_day()
+    def __init__(self) -> None:
         self.drive = Drive()
         self.youtube = Youtube()
-        self.convert_rooms(records)
+        self.erudite = Erudite()
 
-    def set_dates(self) -> str:
-        today = datetime.today().date() - timedelta(days=2)
-        return today
+    def get_all_records_per_day(self) -> list or None:
+        return self.erudite.get_all_records_per_day()
 
-    def get_all_records_per_day(self) -> list:
-        params = {"fromdate": self.fromdate, "todate": self.todate}
-        r = requests.get("https://nvr.miem.hse.ru/api/erudite/records", params=params)
-        return r.json()
-
-    def convert_rooms(self, records: list):
+    def filter_records(self, records: list) -> list:
+        zoom_and_offline = []
+        jitsi = []
         for record in records:
-            print(record)
-            if record["type"] == "Offline" or record["type"] == "Zoom":
-                room_name = record["room_name"]
-                start_time = record["start_time"]
-                start_time = start_time[:5]
-                print(room_name, record["type"], start_time)
-                if not self.check_if_new(room_name, start_time):
-                    continue
-                room_times = self.offline_rooms.get(room_name)
-                if room_times is None:
-                    self.offline_rooms[room_name] = [start_time]
-                    room_times = self.offline_rooms.get(room_name)
-                room_times.append(start_time)
-                id = self.get_file_id(record["url"])
-                self.drive.download(id)
-                self.video = self.drive.file_name
-                self.video = self.video[:-4]
-            else:
-                self.youtube.download(record["url"])
-                self.video = self.youtube.file_name
-                self.video = self.video[:-4]
-            convertion = SoundToText(self.video)
-            key_words = convertion.get_counter()
-            del convertion
-            record.update({"keywords": key_words})
-            self.delete()
+            if (
+                record["type"] == "Offline"
+                and not self.check_for_dublicate(zoom_and_offline, record)
+            ) or record["type"] == "Zoom":
+                zoom_and_offline.append(record)
+            elif record["type"] == "Jitsi":
+                jitsi.append(record)
 
-    def check_if_new(self, name: str, start_time: str) -> bool:
-        start_time = start_time[:10]
-        room_times = self.offline_rooms.get(name)
-        if room_times is None or start_time in room_times:
-            return True
+        return zoom_and_offline, jitsi
+
+    def check_for_dublicate(self, records: list, record: dict) -> bool:
+        start_time = record["start_time"]
+        start_time = start_time[:5]
+        for record_offline in records:
+            if (
+                record_offline["room_name"] == record["room_name"]
+                and record_offline["start_time"][:5] == start_time
+            ):
+                return True
         return False
+
+    def convert_offline_zoom(self, records: list) -> None:
+        for record in records:
+            self.download_offline_zoom(record)
+            self.convert()
+
+    def convert_jitsi(self, records: list) -> None:
+        for record in records:
+            self.download_jitsi(record)
+            self.convert()
+
+    def download_jitsi(self, record: dict) -> None:
+        self.youtube.download(record["url"])
+        logger.info(f"Video - {self.youtube.vid.title} downloaded")
+        self.video = self.youtube.file_name
+        self.video = self.video[:-4]
+
+    def download_offline_zoom(self, record: dict) -> None:
+        id = self.get_file_id(record["url"])
+        self.drive.download(id)
+        self.video = self.drive.file_name
+        self.video = self.video[:-4]
+
+    def convert(self) -> None:
+        convertion = SoundToText(self.video)
+        key_words = convertion.get_counter()
+        del convertion
+        # Обновление keywords в Эрудите
+        self.delete()
 
     def get_file_id(self, url: str) -> str:
         id = url[32:]
         id = id[: len(id) - 8]
         return id
 
-    def delete(self):
+    def delete(self) -> None:
         os.remove(f"{self.video}.mp4")
 
 
-check = EruditeRecords()
+@logger.catch
+def main() -> None:
+    conv = EruditeRecords()
+    records = conv.get_all_records_per_day()
+    offline_zoom, jitsi = conv.filter_records(records)
+    # conv.convert_offline_zoom(offline_zoom)
+    conv.convert_jitsi(jitsi)
+
+
+if __name__ == "__main__":
+    main()
