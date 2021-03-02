@@ -1,4 +1,3 @@
-import requests
 import os
 from loguru import logger
 
@@ -68,7 +67,7 @@ class EruditeRecords:
 
     def convert(self) -> list:
         convertion = SoundToText(self.video)
-        key_words = convertion.get_list()
+        key_words = convertion.get_set()
         del convertion
         self.delete()
         return key_words

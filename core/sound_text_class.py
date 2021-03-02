@@ -5,23 +5,18 @@ import subprocess
 import os
 from loguru import logger
 from collections import Counter
-
-from settings import settings
+import re
 
 
 class SoundToText:
-    COMMON = settings.common_words.split("\n")
     SOUND_WAV = "sound.wav"
     SOUND_AAC = "sound.aac"
 
-    def __init__(self, name: str, lang: str = "ru-RU") -> None:
+    def __init__(self, name: str = "video", lang: str = "ru-RU") -> None:
+        self.taboo = re.split(",|\n", self.read_file())
         self.text = ""
-        self.video_to_sound(name)
-        names_list = self.split()
-        self.convert(names_list, lang)
-        self.text = self.text.split(" ")
-        self.clear_words()
-        print(self.get_counter())
+        self.name = name
+        self.lang = lang
 
     def __del__(self) -> None:
         try:
@@ -30,13 +25,29 @@ class SoundToText:
         except:
             pass
 
+    def read_file(self) -> list:
+        f = open("taboo.txt", "r")
+        return f.read()
+
+    def convert_video_to_text(self) -> None:
+        self.video_to_sound(self.name)
+        names_list = self.split()
+        self.convert_audio_to_text(names_list, self.lang)
+        self.text = self.text.split(" ")
+        self.clear_words()
+        logger.info(f"Words found - {self.get_counter()}")
+
+    def video_to_sound(self, name: str) -> None:
+        subprocess.call(f"ffmpeg -i {name}.mp4 -c:a copy -vn {self.SOUND_AAC}", shell=True)
+        subprocess.call(f"ffmpeg -i {self.SOUND_AAC} {self.SOUND_WAV}", shell=True)
+
     def split(self) -> list:
         """ Splits video by 1-minute length pieces """
 
         split_wav = SplitAudio(self.SOUND_WAV)
         return split_wav.multiple_split()
 
-    def convert(self, names: list, lang: str = "ru-RU") -> None:
+    def convert_audio_to_text(self, names: list, lang: str = "ru-RU") -> None:
         """ Converts sound from every file given into a list of words, deletes converted .wav file """
 
         for name in names:
@@ -55,25 +66,16 @@ class SoundToText:
             os.remove(name)
 
     def clear_words(self) -> None:
+        print(self.taboo)
         for word in self.text:
-            if self.COMMON.count(word) != 0:
-                while True:
-                    try:
-                        self.text.remove(word)
-                    except:
-                        break
+            if word.lower() in self.taboo or len(word) < 2:
+                self.text = list(filter((word).__ne__, self.text))
 
     def get_counter(self) -> Counter:
         return Counter(self.text)
 
-    def get_list(self) -> list:
-        return self.text
-
-    def video_to_sound(self, name: str) -> None:
-        subprocess.call(
-            f"ffmpeg -i {name}.mp4 -c:a copy -vn {self.SOUND_AAC}", shell=True
-        )
-        subprocess.call(f"ffmpeg -i {self.SOUND_AAC} {self.SOUND_WAV}", shell=True)
+    def get_set(self) -> list:
+        return set(self.text)
 
 
 class SplitAudio:
@@ -108,4 +110,5 @@ class SplitAudio:
         return names
 
 
-# test = SoundToText("videoLiza")
+# test = SoundToText("videoL")
+# test.convert_video_to_text()
