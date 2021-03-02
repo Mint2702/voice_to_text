@@ -1,6 +1,6 @@
 requests
 pydantic
-pydub
+pytube
 speechrecognition
 loguru
 pydantic[dotenv]

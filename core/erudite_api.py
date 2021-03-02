@@ -44,3 +44,28 @@ class Erudite:
             logger.warning(f"Record with id - {record_id} not found")
         else:
             logger.error(f"Erudite returned - {code}")
+
+    def filter_records(self, records: list) -> list:
+        zoom_and_offline = []
+        jitsi = []
+        for record in records:
+            if (
+                record["type"] == "Offline"
+                and not self.check_for_dublicate(zoom_and_offline, record)
+            ) or record["type"] == "Zoom":
+                zoom_and_offline.append(record)
+            elif record["type"] == "Jitsi":
+                jitsi.append(record)
+
+        return zoom_and_offline, jitsi
+
+    def check_for_dublicate(self, records: list, record: dict) -> bool:
+        start_time = record["start_time"]
+        start_time = start_time[:5]
+        for record_offline in records:
+            if (
+                record_offline["room_name"] == record["room_name"]
+                and record_offline["start_time"][:5] == start_time
+            ):
+                return True
+        return False
