@@ -7,20 +7,20 @@ class Youtube:
     def __init__(self):
         pass
 
-    def download(self, url: str, name: str = "video.mp4") -> str:
+    def download(self, url: str, name: str = "video.mp4") -> bool:
         """ Downloads video from youtube and reames it """
 
         name = self.check_repair_name(name)
         self.file_name = name
         try:
-            self.vid = YouTube(url)
-            self.vid.streams.first().download()
-            downloaded_name = f"{self.vid.title}.mp4"
-            rename(downloaded_name, name)
-        except exceptions.VideoUnavailable:
-            logger.error("Video not found in YouTube")
+            self.vid = YouTube(url).streams.first().download()
+            logger.info("Downloading video")
+            rename(self.vid, name)
+        except:
+            logger.error("Error while downloading video from Youtube")
+            return False
 
-        return name
+        return True
 
     def check_repair_name(self, name: str) -> str:
         """ Checks if name ends with .mp4, ads it if not """
@@ -32,4 +32,4 @@ class Youtube:
 
 
 # test = Youtube()
-# name = test.download("https://www.youtube.com/watcsdvsh?v=HjPRvcxbxcbGpYVL_s", "new")
+# name = test.download("https://www.youtube.com/watch?v=jcsL6xefiRc", "name")

@@ -49,15 +49,19 @@ class EruditeRecords:
 
     def convert_jitsi(self, records: list) -> None:
         for record in records:
-            self.download_jitsi(record)
-            key_words = self.convert()
-            self.erudite.patch_record(key_words, record["id"])
+            status = self.download_jitsi(record)
+            if status:
+                key_words = self.convert()
+                self.erudite.patch_record(key_words, record["id"])
 
-    def download_jitsi(self, record: dict) -> None:
-        self.youtube.download(record["url"])
-        logger.info(f"Video - {self.youtube.vid.title} downloaded")
-        self.video = self.youtube.file_name
-        self.video = self.video[:-4]
+    def download_jitsi(self, record: dict) -> bool:
+        status = self.youtube.download(record["url"])
+        if status:
+            logger.info(f"Video - {self.youtube.vid} downloaded")
+            self.video = self.youtube.file_name
+            self.video = self.video[:-4]
+            return True
+        return False
 
     def download_offline_zoom(self, record: dict) -> None:
         id = self.get_file_id(record["url"])
@@ -67,7 +71,8 @@ class EruditeRecords:
 
     def convert(self) -> list:
         convertion = SoundToText(self.video)
-        key_words = convertion.get_set()
+        convertion.convert_video_to_text()
+        key_words = convertion.get_list()
         del convertion
         self.delete()
         return key_words
@@ -86,6 +91,7 @@ def main() -> None:
     conv = EruditeRecords()
     records = conv.get_all_records_per_day()
     offline_zoom, jitsi = conv.filter_records(records)
+    print(jitsi)
     # conv.convert_offline_zoom(offline_zoom)
     conv.convert_jitsi(jitsi)
 

@@ -38,7 +38,9 @@ class SoundToText:
         logger.info(f"Words found - {self.get_counter()}")
 
     def video_to_sound(self, name: str) -> None:
-        subprocess.call(f"ffmpeg -i {name}.mp4 -c:a copy -vn {self.SOUND_AAC}", shell=True)
+        subprocess.call(
+            f"ffmpeg -i {name}.mp4 -c:a copy -vn {self.SOUND_AAC}", shell=True
+        )
         subprocess.call(f"ffmpeg -i {self.SOUND_AAC} {self.SOUND_WAV}", shell=True)
 
     def split(self) -> list:
@@ -74,8 +76,8 @@ class SoundToText:
     def get_counter(self) -> Counter:
         return Counter(self.text)
 
-    def get_set(self) -> list:
-        return set(self.text)
+    def get_list(self) -> list:
+        return list(set(self.text))
 
 
 class SplitAudio:
