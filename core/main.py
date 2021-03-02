@@ -1,77 +1,75 @@
 import os
 from loguru import logger
 
-from sound_text_class import SoundToText
+from sound_text_class import SoundToText, SplitAudio
 from drive_downloader import Drive
 from youtube_downloader import Youtube
 from erudite_api import Erudite
 
 
-def convert_offline_zoom(records: list) -> None:
+def convert_offline(records: list) -> None:
+    record_keywords = {}
     for record in records:
-        video_name = download_offline_zoom(record)
+        record_key = record["room_name"] + "_" + record["start_time"][:5]
+        if not record_keywords.get(record_key):
+            video_name = download_from_drive(record)
+            key_words = convert(video_name)
+        else:
+            key_words = record_keywords[record_key]
+
+        Erudite.patch_record(key_words, record["id"])
+
+
+def convert_zoom(records: list) -> None:
+    for record in records:
+        video_name = download_from_drive(record)
         key_words = convert(video_name)
-        erudite.patch_record(key_words, record["id"])
+        Erudite.patch_record(key_words, record["id"])
 
 
 def convert_jitsi(records: list) -> None:
     for record in records:
-        video_name = download_jitsi(record)
+        video_name = download_from_youtube(record)
         if video_name:
             key_words = convert(video_name)
-            erudite.patch_record(key_words, record["id"])
+            Erudite.patch_record(key_words, record["id"])
 
 
-def download_jitsi(record: dict) -> bool or str:
-    status = youtube.download(record["url"])
-    if status:
-        logger.info(f"Video - {youtube.vid} downloaded")
-        video_name = youtube.file_name
-        video_name = video_name[:-4]
+def download_from_youtube(record: dict) -> bool or str:
+    vid, name = Youtube.download(record["url"])
+    if vid:
+        logger.info(f"Video - {vid} downloaded")
+        video_name = name.split(".")[0]
         return video_name
-    return False
 
 
-def download_offline_zoom(record: dict) -> str:
-    id = get_file_id(record["url"])
+def download_from_drive(record: dict) -> str:
+    id = record["url"].split("/")[-2]
+    drive = Drive()
     drive.download(id)
-    video_name = drive.file_name
-    video_name = video_name[:-4]
+    video_name = drive.file_name.split(".")[0]
     return video_name
 
 
 def convert(video_name: str) -> list:
-    convertion = SoundToText(video_name)
-    convertion.convert_video_to_text()
-    key_words = convertion.get_list()
-    del convertion
-    delete(video_name)
-    return key_words
+    SoundToText.video_to_sound(video_name)
 
-
-def get_file_id(url: str) -> str:
-    id = url[32:]
-    id = id[: len(id) - 8]
-    return id
-
-
-def delete(video_name: str = "video") -> None:
+    split_wav = SplitAudio(SoundToText.SOUND_WAV)
+    names_list = split_wav.multiple_split()
+    words = SoundToText.convert_audio_to_text(names_list, "ru-RU")
+    key_words = SoundToText.clear_words(words)
     os.remove(f"{video_name}.mp4")
+    return list(key_words)
 
 
 @logger.catch
-def main() -> None:
-    global drive, youtube, erudite
-    drive = Drive()
-    youtube = Youtube()
-    erudite = Erudite()
+def main():
+    records = Erudite.get_all_records_per_day()
+    offline, zoom, jitsi = Erudite.filter_records(records)
 
-    records = erudite.get_all_records_per_day()
-    offline_zoom, jitsi = erudite.filter_records(records)
-    print(jitsi)
-
-    # convert_offline_zoom(offline_zoom)
-    convert_jitsi(jitsi)
+    # convert_offline(offline)
+    # convert_zoom(zoom)
+    # convert_jitsi(jitsi)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 /env
 .env
+venv/
 *.wav
 *.m4a
 *.mp4
