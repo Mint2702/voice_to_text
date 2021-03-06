@@ -17,11 +17,11 @@ class Erudite:
         page_number = 0
         all_records = []
 
-        records = self.get_records(fromdate, todate, page_number)
+        records = cls.get_records(fromdate, todate, page_number)
         all_records.extend(records)
         while records:
             page_number += 1
-            records = self.get_records(fromdate, todate, page_number)
+            records = cls.get_records(fromdate, todate, page_number)
             all_records.extend(records)
         
         return all_records
