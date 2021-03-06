@@ -68,8 +68,8 @@ def main():
     offline, zoom, jitsi = Erudite.filter_records(records)
 
     # convert_offline(offline)
-    # convert_zoom(zoom)
-    # convert_jitsi(jitsi)
+    convert_zoom(zoom)
+    convert_jitsi(jitsi)
 
 
 if __name__ == "__main__":

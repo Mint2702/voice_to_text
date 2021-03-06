@@ -14,12 +14,25 @@ class Erudite:
         today = datetime.today().date() - timedelta(days=1)
         fromdate = f"{today} 9:00:00"
         todate = f"{today} 21:00:00"
+        page_number = 0
+        all_records = []
 
-        params = {"fromdate": fromdate, "todate": todate}
+        records = self.get_records(fromdate, todate, page_number)
+        all_records.extend(records)
+        while records:
+            page_number += 1
+            records = self.get_records(fromdate, todate, page_number)
+            all_records.extend(records)
+        
+        return all_records
+    
+    @classmethod
+    def get_records(cls, fromdate, todate, page_number) -> list:
+        params = {"fromdate": fromdate, "todate": todate, "page_number": page_number}
         r = requests.get(cls.ERUDITE_API_URL, params=params)
         code = r.status_code
         if code == 200:
-            return r.json()
+            return [record for record in r.json() if not record['keywords']]
         elif code == 404:
             logger.warning(f"No records for {fromdate} found")
             return []
