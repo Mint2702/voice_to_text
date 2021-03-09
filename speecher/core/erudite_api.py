@@ -11,7 +11,7 @@ class Erudite:
 
     @classmethod
     def get_all_records_per_day(cls) -> list:
-        today = datetime.today().date() - timedelta(days=1)
+        today = datetime.today().date()
         fromdate = f"{today} 9:00:00"
         todate = f"{today} 21:00:00"
         page_number = 0
