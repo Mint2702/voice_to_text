@@ -9,7 +9,7 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseDownload
 from googleapiclient.errors import HttpError
 
-from settings import settings
+from .settings import settings
 
 
 class Drive:
@@ -30,9 +30,7 @@ class Drive:
             if self.creds and self.creds.expired and self.creds.refresh_token:
                 self.creds.refresh(Request())
             else:
-                flow = InstalledAppFlow.from_client_secrets_file(
-                    self.CREDS_PATH, self.SCOPES
-                )
+                flow = InstalledAppFlow.from_client_secrets_file(self.CREDS_PATH, self.SCOPES)
                 self.creds = flow.run_local_server(port=0)
             with open(self.TOKEN_PATH, "wb") as token:
                 pickle.dump(self.creds, token)
