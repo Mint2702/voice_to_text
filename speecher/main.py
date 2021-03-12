@@ -2,9 +2,9 @@ import os
 from loguru import logger
 
 from core.sound_text_class import SoundToText, SplitAudio
+from core.erudite_api import Erudite
 from core.drive_downloader import Drive
 from core.youtube_downloader import Youtube
-from core.erudite_api import Erudite
 
 
 def convert_offline(records: list) -> None:
@@ -66,6 +66,8 @@ def convert(video_name: str) -> list:
 def main():
     records = Erudite.get_all_records_per_day()
     offline, zoom, jitsi = Erudite.filter_records(records)
+    print(zoom)
+    print(jitsi)
 
     # convert_offline(offline)
     convert_zoom(zoom)
