@@ -21,8 +21,10 @@ class SoundToText:
 
     @classmethod
     def video_to_sound(cls, name: str) -> None:
-        subprocess.call(f"ffmpeg -i {name}.mp4 -c:a copy -vn -y {cls.SOUND_AAC}", shell=True)
-        subprocess.call(f"ffmpeg -i {cls.SOUND_AAC} {cls.SOUND_WAV}", shell=True)
+        subprocess.call(
+            f"ffmpeg -i {name}.mp4 -c:a copy -vn -y {cls.SOUND_AAC}", shell=True
+        )
+        subprocess.call(f"ffmpeg -i {cls.SOUND_AAC} -y {cls.SOUND_WAV}", shell=True)
 
     @staticmethod
     def convert_audio_to_text(names: list, lang: str = "ru-RU") -> None:
