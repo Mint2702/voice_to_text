@@ -29,10 +29,21 @@ def convert_zoom(records: list) -> None:
 
 def convert_jitsi(records: list) -> None:
     for record in records:
-        video_name = download_from_youtube(record)
+        video_name, raw_name = download_from_youtube(record)
         if video_name:
-            key_words = convert(video_name)
+            lang = get_lang(raw_name)
+            key_words = convert(video_name, lang)
             Erudite.patch_record(key_words, record["id"])
+
+
+def get_lang(name: str) -> str:
+    lesson_lang = name.split("(")[1][:-1]
+    if lesson_lang == "англ":
+        lang = "en-GB"
+    else:
+        lang = "ru-RU"
+
+    return lang
 
 
 def download_from_youtube(record: dict) -> bool or str:
@@ -40,7 +51,7 @@ def download_from_youtube(record: dict) -> bool or str:
     if vid:
         logger.info(f"Video - {vid} downloaded")
         video_name = name.split(".")[0]
-        return video_name
+        return video_name, vid
 
 
 def download_from_drive(record: dict) -> str:
@@ -51,12 +62,12 @@ def download_from_drive(record: dict) -> str:
     return video_name
 
 
-def convert(video_name: str) -> list:
+def convert(video_name: str, lang: str = "ru-RU") -> list:
     SoundToText.video_to_sound(video_name)
 
     split_wav = SplitAudio(SoundToText.SOUND_WAV)
     names_list = split_wav.multiple_split()
-    words = SoundToText.convert_audio_to_text(names_list, "ru-RU")
+    words = SoundToText.convert_audio_to_text(names_list, lang)
     key_words = SoundToText.clear_words(words)
     os.remove(f"{video_name}.mp4")
     return list(key_words)
@@ -66,8 +77,6 @@ def convert(video_name: str) -> list:
 def main():
     records = Erudite.get_all_records_per_day()
     offline, zoom, jitsi = Erudite.filter_records(records)
-    print(zoom)
-    print(jitsi)
 
     # convert_offline(offline)
     convert_zoom(zoom)

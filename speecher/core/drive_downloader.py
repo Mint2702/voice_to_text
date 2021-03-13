@@ -54,7 +54,3 @@ class Drive:
         except HttpError:
             logger.error(f"File with id - {video_id} not found")
         return name
-
-
-# test = Drive()
-# test.download("1ayGVdccCmS4BvQK5YL7l8mfd4PVrPEvd")

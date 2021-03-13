@@ -8,3 +8,4 @@ pycache
 .vscode/
 *.cpython*
 *creds
+.wav
